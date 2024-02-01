@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .transaction {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2 class="header">Online Account Details</h2>
+
+        <?php
+
+        abstract class Account {
+            abstract public function createTransaction($amount, $type);
+            abstract public function getBalance();
+        }
+
+        interface TransactionActions {
+            public function credit($amount);
+            public function debit($amount);
+        }
+
+        class BusinessAccount extends Account implements TransactionActions {
+            private $balance;
+            private $transactions;
+
+            public function __construct() {
+                $this->balance = 0;
+                $this->transactions = array();
+            }
+
+            public function createTransaction($amount, $type) {
+                if ($type === 'credit' || $type === 'debit') {
+                    array_push($this->transactions, array("amount" => $amount, "type" => $type));
+                    if ($type === 'credit') {
+                        $this->debit($amount); 
+                    } else {
+                        $this->credit($amount); 
+                    }
+                } else {
+                    echo "Invalid transaction type.";
+                }
+            }
+
+            public function credit($amount) {
+                $this->balance += $amount;
+            }
+
+            public function debit($amount) {
+                if ($this->balance >= $amount) {
+                    $this->balance -= $amount;
+                } else {
+                    echo "Insufficient balance.";
+                }
+            }
+
+            public function getBalance() {
+                return $this->balance;
+            }
+
+            public function getTransactions() {
+                return $this->transactions;
+            }
+        }
+
+        $account = new BusinessAccount();
+
+        $transactions = [
+            ['amount' => 7000, 'type' => 'debit'], 
+            ['amount' => 5000, 'type' => 'credit'], 
+            ['amount' => 1000, 'type' => 'debit'] 
+        ];
+
+        foreach ($transactions as $transaction) {
+            $account->createTransaction($transaction['amount'], $transaction['type']);
+        }
+        ?>
+
+        <div class="account-info">
+            <strong>Account Balance:</strong> <?php echo $account->getBalance(); ?><br><br>
+            <strong>Transactions:</strong><br>
+            <?php
+            $transactions = $account->getTransactions();
+            foreach ($transactions as $transaction) {
+                echo "<div class='transaction'>Type: " . $transaction['type'] . ", Amount: " . $transaction['amount'] . "</div>";
+            }
+            ?>
+        </div>
+    </div>
+</body>
+
+</html>
